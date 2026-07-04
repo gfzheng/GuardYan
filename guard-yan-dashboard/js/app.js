@@ -3,15 +3,30 @@
 
 (function() {
   function init() {
-    DataStore.init();
+    gyStore.init();
     renderNavbar();
     renderToastContainer();
     renderSimulatorPanel();
     highlightCurrentNav();
+    initHamburger();
   }
 
   function renderNavbar() {
     // Navbar is static in HTML, but we can dynamically mark active link
+  }
+
+  function initHamburger() {
+    const btn = document.getElementById('nav-hamburger');
+    const links = document.getElementById('nav-links');
+    if (btn && links) {
+      btn.addEventListener('click', () => {
+        links.classList.toggle('open');
+      });
+      // Close menu when a link is clicked (mobile UX)
+      links.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => links.classList.remove('open'));
+      });
+    }
   }
 
   function highlightCurrentNav() {
@@ -46,10 +61,14 @@
         <span id="simulator-chevron">▼</span>
       </div>
       <div class="simulator-body" id="simulator-body">
-        <button class="btn btn-danger simulator-btn" data-sim="fall">模拟跌倒</button>
-        <button class="btn btn-danger simulator-btn" data-sim="sos">模拟 SOS</button>
-        <button class="btn btn-success simulator-btn" data-sim="med">模拟用药提醒</button>
-        <button class="btn btn-ghost simulator-btn" data-sim="toggle">切换设备离线</button>
+        <p class="simulator-hint" style="margin-bottom:0.75rem;font-weight:500;">💡 点击下方按钮模拟硬件事件</p>
+        <button class="btn btn-danger simulator-btn" data-sim="fall">⚡ 模拟跌倒</button>
+        <button class="btn btn-danger simulator-btn" data-sim="sos">🔴 模拟 SOS</button>
+        <button class="btn btn-success simulator-btn" data-sim="med">💊 模拟用药提醒</button>
+        <button class="btn btn-ghost simulator-btn" data-sim="toggle">📱 切换设备离线</button>
+        <div style="border-top:1px solid var(--rule);margin-top:0.75rem;padding-top:0.75rem;">
+          <button class="btn btn-ghost simulator-btn" data-sim="reset" style="font-size:0.78rem;color:var(--muted);">🔄 重置演示数据</button>
+        </div>
         <p class="simulator-hint">触发后 1~2 秒事件出现在 Dashboard</p>
       </div>
     `;
@@ -61,7 +80,27 @@
       const chevron = document.getElementById('simulator-chevron');
       body.classList.toggle('open');
       chevron.textContent = body.classList.contains('open') ? '▲' : '▼';
+      // Remember user preference
+      sessionStorage.setItem('gy-sim-open', body.classList.contains('open') ? '1' : '0');
     });
+
+    // Auto-open on first visit
+    const simOpened = sessionStorage.getItem('gy-sim-open');
+    if (simOpened === null) {
+      // First visit — auto open with a short delay for visual impact
+      setTimeout(() => {
+        const body = document.getElementById('simulator-body');
+        const chevron = document.getElementById('simulator-chevron');
+        if (body && !body.classList.contains('open')) {
+          body.classList.add('open');
+          chevron.textContent = '▲';
+          sessionStorage.setItem('gy-sim-open', '1');
+        }
+      }, 800);
+    } else if (simOpened === '1') {
+      document.getElementById('simulator-body').classList.add('open');
+      document.getElementById('simulator-chevron').textContent = '▲';
+    }
 
     // Buttons
     panel.querySelectorAll('[data-sim]').forEach(btn => {
@@ -70,12 +109,20 @@
   }
 
   function handleSimAction(action) {
-    const elders = DataStore.getElders();
+    const elders = gyStore.getElders();
+
+    if (action === 'reset') {
+      gyStore.reset();
+      window.dispatchEvent(new CustomEvent('gy-data-changed'));
+      showToast('演示数据已重置为初始状态', 'success');
+      return;
+    }
+
     const onlineElders = elders.filter(e => e.online);
 
     if (action === 'toggle') {
       const target = onlineElders.length > 0 ? onlineElders[0] : elders[0];
-      DataStore.updateElder(target.id, { online: !target.online });
+      gyStore.updateElder(target.id, { online: !target.online });
       showToast(`${target.name} 设备已${!target.online ? '离线' : '上线'}`, 'success');
       window.dispatchEvent(new CustomEvent('gy-data-changed'));
       return;
@@ -92,7 +139,7 @@
     if (action === 'fall') {
       showToast(`模拟：${target.name} 设备检测到跌倒...`, 'success');
       setTimeout(() => {
-        DataStore.addEvent({
+        gyStore.addEvent({
           type: 'fall', elderId: target.id,
           description: 'MPU6050检测到疑似跌倒事件'
         });
@@ -102,7 +149,7 @@
     } else if (action === 'sos') {
       showToast(`模拟：${target.name} 按下 SOS 按钮...`, 'success');
       setTimeout(() => {
-        DataStore.addEvent({
+        gyStore.addEvent({
           type: 'sos', elderId: target.id,
           description: '长者手动触发SOS按钮'
         });
@@ -112,7 +159,7 @@
     } else if (action === 'med') {
       showToast(`模拟：${target.name} 用药提醒触发...`, 'success');
       setTimeout(() => {
-        DataStore.addEvent({
+        gyStore.addEvent({
           type: 'med', elderId: target.id,
           description: '用药时间到，设备已提醒'
         });

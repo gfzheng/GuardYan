@@ -2,11 +2,13 @@
 /** GuardYan Dashboard - Elder Card / Profile Component */
 
 (function() {
+  let _chartInstance = null;
+
   function renderElderList(containerId, onSelect) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const elders = DataStore.getElders();
+    const elders = gyStore.getElders();
     container.innerHTML = elders.map(e => `
       <li class="elder-list-item" data-elder="${e.id}">
         <div class="elder-avatar">${e.gender === '女' ? '👵' : '👴'}</div>
@@ -37,19 +39,39 @@
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const elder = DataStore.getElderById(elderId);
+    const elder = gyStore.getElderById(elderId);
     if (!elder) {
       container.innerHTML = '<div class="empty-state">请选择长者</div>';
       return;
     }
 
-    const counts = DataStore.getEventCountsByType(7);
-    const daily = DataStore.getDailyEventCounts(7);
+    // Per-elder stats (filter by elderId)
+    const elderEvents = gyStore.getEvents({ elderId: elderId });
+    const now = Date.now();
+    const weekCutoff = now - 7 * 86400000;
+    const recentEvents = elderEvents.filter(e => e.timestamp >= weekCutoff);
+    const counts = { fall: 0, sos: 0, med: 0 };
+    recentEvents.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+
+    // Per-elder daily breakdown
+    const daily = [];
+    for (let d = 6; d >= 0; d--) {
+      const date = new Date(now - d * 86400000);
+      const start = new Date(date); start.setHours(0,0,0,0);
+      const end = new Date(date); end.setHours(23,59,59,999);
+      const dayEvents = recentEvents.filter(e => e.timestamp >= start.getTime() && e.timestamp <= end.getTime());
+      daily.push({
+        date: `${date.getMonth()+1}/${date.getDate()}`,
+        fall: dayEvents.filter(e => e.type === 'fall').length,
+        sos: dayEvents.filter(e => e.type === 'sos').length,
+        med: dayEvents.filter(e => e.type === 'med').length
+      });
+    }
 
     container.innerHTML = `
       <div class="profile-grid">
         <div class="card">
-          <div class="card-title">👤 基本信息</div>
+          <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> 基本信息</div>
           <div class="card-body">
             <div class="info-row"><span class="info-label">姓名</span><span class="info-value">${elder.name}</span></div>
             <div class="info-row"><span class="info-label">年龄 / 性别</span><span class="info-value">${elder.age}岁 / ${elder.gender}</span></div>
@@ -60,7 +82,7 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-title">📟 设备状态</div>
+          <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> 设备状态</div>
           <div class="card-body">
             <div class="info-row"><span class="info-label">设备 ID</span><span class="info-value">${elder.deviceId}</span></div>
             <div class="info-row"><span class="info-label">在线状态</span><span class="info-value"><span class="status-dot ${elder.online ? 'online' : 'offline'}"></span> ${elder.online ? '在线' : '离线'}</span></div>
@@ -76,7 +98,7 @@
         </div>
       </div>
       <div class="card" style="margin-top:1rem;">
-        <div class="card-title">📊 近7天事件统计</div>
+        <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> 近7天事件统计</div>
         <div style="display:flex;gap:1rem;margin-bottom:0.75rem;">
           <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent2);">${counts.fall}</div><div style="font-size:0.8rem;color:var(--muted);">跌倒</div></div>
           <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent);">${counts.sos}</div><div style="font-size:0.8rem;color:var(--muted);">SOS</div></div>
@@ -94,7 +116,7 @@
       showToast(`已向 ${elder.deviceId} 发送静音指令`, 'success');
     });
 
-    // Render chart
+    // Render chart (destroy old instance first)
     renderChart(daily);
   }
 
@@ -102,7 +124,13 @@
     const ctx = document.getElementById('chart-events');
     if (!ctx || typeof Chart === 'undefined') return;
 
-    new Chart(ctx, {
+    // Destroy previous chart instance to prevent memory leak
+    if (_chartInstance) {
+      _chartInstance.destroy();
+      _chartInstance = null;
+    }
+
+    _chartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: dailyData.map(d => d.date),

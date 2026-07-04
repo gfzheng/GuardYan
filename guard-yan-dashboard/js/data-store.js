@@ -356,10 +356,14 @@ function getEventTypeLabel(type) {
 }
 
 function getEventTypeIcon(type) {
-  const map = { sos: '🔴', fall: '⚡', med: '💊' };
-  return map[type] || '•';
+  const map = {
+    sos: '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">S</text></svg>',
+    fall: '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v6M8 8l4-6 4 6M6 14l6-4 6 4M8 22l4-8 4 8"/></svg>',
+    med: '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>'
+  };
+  return map[type] || '<span style="color:var(--muted);">&#x2022;</span>';
 }
 
-// Expose globally
-window.DataStore = store;
+// Expose globally (use different name to avoid collision with class DataStore)
+window.gyStore = store;
 window.GYUtils = { formatTime, formatDate, getEventTypeLabel, getEventTypeIcon, formatDateKey };
