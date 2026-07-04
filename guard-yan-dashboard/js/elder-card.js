@@ -39,7 +39,7 @@
 
     const elder = DataStore.getElderById(elderId);
     if (!elder) {
-      container.innerHTML = '<div class="empty-state">请选择老人</div>';
+      container.innerHTML = '<div class="empty-state">请选择长者</div>';
       return;
     }
 

@@ -104,7 +104,7 @@
       setTimeout(() => {
         DataStore.addEvent({
           type: 'sos', elderId: target.id,
-          description: '老人手动触发SOS按钮'
+          description: '长者手动触发SOS按钮'
         });
         window.dispatchEvent(new CustomEvent('gy-data-changed'));
         showToast(`${target.name} SOS 呼救已上报！`, 'error');

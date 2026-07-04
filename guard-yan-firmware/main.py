@@ -79,7 +79,7 @@ class GuardYanDevice:
                 self.buzzer.start_sos()
                 # Record 3s audio
                 audio_b64 = self.audio.record(3)
-                self._publish('sos', '老人手动触发SOS按钮', audio_b64)
+                self._publish('sos', '长者手动触发SOS按钮', audio_b64)
 
             # 3. SOS beep loop
             if self.sos_active:

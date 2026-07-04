@@ -38,14 +38,14 @@ function generateDefaultEvents() {
     id: 'ev-sos-1', type: 'sos', elderId: 'e1',
     timestamp: now.getTime() - 3600000,
     status: 'resolved',
-    description: '老人手动触发SOS按钮',
+    description: '长者手动触发SOS按钮',
     audioUrl: null
   });
   events.push({
     id: 'ev-sos-2', type: 'sos', elderId: 'e2',
     timestamp: now.getTime() - 86400000 * 2,
     status: 'resolved',
-    description: '老人手动触发SOS按钮',
+    description: '长者手动触发SOS按钮',
     audioUrl: null
   });
 

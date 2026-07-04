@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>守檐·GuardYan — 老人随身应急呼救与跌倒事件袖珍盒 创意提案</title>
+  <title>守檐·GuardYan — 长者随身应急呼救与跌倒事件袖珍盒 创意提案</title>
 
   <style>
     :root {
@@ -518,8 +518,8 @@
       <div class="hero-content">
         <div class="hero-badge">【硬件交互 · 社会公益】智慧助老方向</div>
         <h1>守檐·<span>GuardYan</span></h1>
-        <p class="hero-tagline">老人随身应急呼救与跌倒事件袖珍盒</p>
-        <p class="hero-sub">消灭独居老人"倒地后无人知晓的时间差"—— 不是让老人学App，而是让技术缩小为一个红色按钮</p>
+        <p class="hero-tagline">长者随身应急呼救与跌倒事件袖珍盒</p>
+        <p class="hero-sub">消灭独居长者"倒地后无人知晓的时间差"—— 不是让长者学App，而是让技术缩小为一个红色按钮</p>
         <div class="hero-stats">
           <div class="hero-stat">
             <div class="hero-stat-num">&lt;60</div>
@@ -542,17 +542,17 @@
       <h2>一、产品定位</h2>
 
       <div class="callout">
-        <p><strong>赛道定位：</strong>【硬件交互 + 社会公益】智慧助老方向 —— 以嵌入式硬件为载体，面向空巢/独居老人居家安全场景，提供零学习成本的随身应急呼救与跌倒检测服务。</p>
+        <p><strong>赛道定位：</strong>【硬件交互 + 社会公益】智慧助老方向 —— 以嵌入式硬件为载体，面向空巢/独居长者居家安全场景，提供零学习成本的随身应急呼救与跌倒检测服务。</p>
       </div>
 
       <h3>想解决什么问题？</h3>
-      <p class="lead">我国空巢/独居老人在家中突发跌倒、急性不适或短暂迷糊时，最致命的不是病本身，而是<mark class="key">"倒地后无人知晓的时间差"</mark> —— 很多老人这时手机不在手边、看不清屏幕、按不准小图标，只能干等。我们要消灭这个时间差。</p>
+      <p class="lead">我国空巢/独居长者在家中突发跌倒、急性不适或短暂迷糊时，最致命的不是病本身，而是<mark class="key">"倒地后无人知晓的时间差"</mark> —— 很多长者这时手机不在手边、看不清屏幕、按不准小图标，只能干等。我们要消灭这个时间差。</p>
 
       <h3>为什么想到做这个？</h3>
-      <p>作为计算机专业教师，我在带学生做嵌入式课程设计时长期接触传感器项目；近两年走访合作社区养老服务中心发现，<mark class="key">护工缺口大、子女白天上班</mark>，老人"怕出事又不想麻烦人"的心理很强。他们需要的不是一个新App，而是一个能挂钥匙圈上的<mark class="key">"物理保险丝"</mark>。</p>
+      <p>作为计算机专业教师，我在带学生做嵌入式课程设计时长期接触传感器项目；近两年走访合作社区养老服务中心发现，<mark class="key">护工缺口大、子女白天上班</mark>，长者"怕出事又不想麻烦人"的心理很强。他们需要的不是一个新App，而是一个能挂钥匙圈上的<mark class="key">"物理保险丝"</mark>。</p>
 
       <h3>产品是什么？</h3>
-      <p>一个硬币大小的随身硬件设备（ESP32-C3-MINI + MPU6050六轴IMU + 驻极体麦克风 + 大尺寸红色SOS按钮 + 压电蜂鸣器 + 呼吸LED + 500mAh锂电），通过Wi-Fi/MQTT把事件推送到云端，配套一个用 <strong>TRAE Work/IDE</strong> 构建的 Web Dashboard（老人档案 · 事件日志 · 联系人 · 用药计划）供子女/护工管理；硬件不便在线体验的部分用演示视频呈现（符合硬件交互赛道规则）。</p>
+      <p>一个硬币大小的随身硬件设备（ESP32-C3-MINI + MPU6050六轴IMU + 驻极体麦克风 + 大尺寸红色SOS按钮 + 压电蜂鸣器 + 呼吸LED + 500mAh锂电），通过Wi-Fi/MQTT把事件推送到云端，配套一个用 <strong>TRAE Work/IDE</strong> 构建的 Web Dashboard（长者档案 · 事件日志 · 联系人 · 用药计划）供子女/护工管理；硬件不便在线体验的部分用演示视频呈现（符合硬件交互赛道规则）。</p>
     </section>
 
     <!-- ========== 二、系统架构图 ========== -->
@@ -586,7 +586,7 @@ flowchart TB
         K["微信/短信网关"]
     end
     subgraph 应用层["&#128187; 应用层（照护端）"]
-        L["Web Dashboard<br/>老人档案·事件日志·用药计划"]
+        L["Web Dashboard<br/>长者档案·事件日志·用药计划"]
         M["子女手机通知"]
     end
 
@@ -616,19 +616,19 @@ flowchart TB
       <figure class="mermaid-wrap">
         <pre class="mermaid">
 sequenceDiagram
-    participant 老人 as &#128116; 老人
+    participant 长者 as &#128116; 长者
     participant 设备 as &#128308; GuardYan设备
     participant 云端 as &#9729; 云端服务
     participant 面板 as &#128187; Web Dashboard
     participant 子女 as &#128241; 子女手机
 
-    老人->>设备: 突发跌倒
+    长者->>设备: 突发跌倒
     设备->>设备: MPU6050检测：加速度>2.5g + 俯仰角剧变
     设备->>设备: 静置超时30s确认
     设备->>设备: 蜂鸣器短鸣3声提示
     设备->>云端: MQTT Publish：fall_event + 时间戳 + 设备ID
     云端->>面板: 推送"疑似跌倒"事件卡片（红色警报）
-    云端->>子女: 微信/短信："老人疑似跌倒，请查看"
+    云端->>子女: 微信/短信："长者疑似跌倒，请查看"
     子女->>面板: 打开Dashboard，点击"确认我已看到"
     面板->>云端: ACK确认
     云端->>设备: MQTT反馈：事件已确认，停止蜂鸣
@@ -640,19 +640,19 @@ sequenceDiagram
       <figure class="mermaid-wrap">
         <pre class="mermaid">
 sequenceDiagram
-    participant 老人 as &#128116; 老人
+    participant 长者 as &#128116; 长者
     participant 设备 as &#128308; GuardYan设备
     participant 云端 as &#9729; 云端服务
     participant 面板 as &#128187; Web Dashboard
     participant 子女 as &#128241; 子女手机
 
-    老人->>设备: 长按红色SOS按钮3秒
+    长者->>设备: 长按红色SOS按钮3秒
     设备->>设备: 蜂鸣器长鸣+LED快闪
     设备->>设备: 驻极体麦克风录制3秒语音
     设备->>云端: MQTT Publish：sos_event + 语音Base64
     云端->>面板: 推送"SOS呼救"事件卡片（红色紧急）
     云端->>云端: 语音转存，生成播放链接
-    云端->>子女: 微信/短信："老人按下SOS按钮，点击收听语音"
+    云端->>子女: 微信/短信："长者按下SOS按钮，点击收听语音"
     子女->>面板: 播放3秒语音片段，确认情况
     子女->>面板: 点击"已处理/已通话"
     面板->>云端: ACK确认
@@ -666,13 +666,13 @@ sequenceDiagram
         <div class="card">
           <div class="card-title">&#128138; 设备端提醒</div>
           <p class="card-desc">
-            Web Dashboard预设用药时间 &rarr; 云端定时下发提醒指令 &rarr; 设备LED呼吸闪烁 + 蜂鸣器节奏鸣响（无需老人看手机）
+            Web Dashboard预设用药时间 &rarr; 云端定时下发提醒指令 &rarr; 设备LED呼吸闪烁 + 蜂鸣器节奏鸣响（无需长者看手机）
           </p>
         </div>
         <div class="card">
           <div class="card-title">&#128206; 服务端管理</div>
           <p class="card-desc">
-            子女/护工在Dashboard上为老人配置每日用药排期，支持多时段提醒、药品名称备注、服用剂量记录
+            子女/护工在Dashboard上为长者配置每日用药排期，支持多时段提醒、药品名称备注、服用剂量记录
           </p>
         </div>
       </div>
@@ -800,13 +800,13 @@ sequenceDiagram
       <div class="wireframe">
         <div class="wireframe-label">顶部导航栏</div>
         <div class="wireframe-box" style="text-align:left;padding:0.5rem 1rem;">
-          [Logo] 守檐·GuardYan &nbsp;&nbsp; 事件总览 | 老人档案 | 用药计划 | 联系人 &nbsp;&nbsp; [&#128100; 用户名]
+          [Logo] 守檐·GuardYan &nbsp;&nbsp; 事件总览 | 长者档案 | 用药计划 | 联系人 &nbsp;&nbsp; [&#128100; 用户名]
         </div>
         <div class="wireframe-label">统计卡片区（4列）</div>
         <div class="wireframe-grid cols-4">
           <div class="wireframe-box">&#128308; 今日事件<br><strong style="color:var(--ink);">2</strong> 条</div>
           <div class="wireframe-box">&#9888; 待确认<br><strong style="color:var(--accent);">1</strong> 条</div>
-          <div class="wireframe-box">&#128100; 绑定老人<br><strong style="color:var(--ink);">3</strong> 位</div>
+          <div class="wireframe-box">&#128100; 绑定长者<br><strong style="color:var(--ink);">3</strong> 位</div>
           <div class="wireframe-box">&#128138; 今日用药<br><strong style="color:var(--ink);">6</strong> 次</div>
         </div>
         <div class="wireframe-label">事件时间线（主区域）</div>
@@ -826,9 +826,9 @@ sequenceDiagram
         </div>
       </div>
 
-      <h3>页面二：老人档案页（Elder Profile）</h3>
+      <h3>页面二：长者档案页（Elder Profile）</h3>
       <div class="wireframe">
-        <div class="wireframe-label">左侧：老人基本信息卡片</div>
+        <div class="wireframe-label">左侧：长者基本信息卡片</div>
         <div class="wireframe-grid cols-2">
           <div class="wireframe-box" style="text-align:left;">
             <strong>&#128100; 张奶奶</strong> | 78岁 | 独居<br><br>
@@ -913,7 +913,7 @@ sequenceDiagram
             <li>MQTT云端通信链路打通</li>
             <li>Web Dashboard前端Demo开发（TRAE）</li>
             <li>录制硬件交互演示视频</li>
-            <li>社区走访获取用户反馈（5位老人）</li>
+            <li>社区走访获取用户反馈（5位长者）</li>
           </ul>
           <div class="wireframe-box" style="margin-top:0.8rem;font-size:0.75rem;">
             交付物：可运行的硬件原型 + Dashboard Demo + 演示视频 + 用户调研报告
@@ -945,7 +945,7 @@ sequenceDiagram
         <div class="value-item">
           <div class="value-icon">&#127793;</div>
           <h4>真正的数字融入</h4>
-          <p>不是逼老人学App，而是"技术缩小为一个按钮去适应老人" — 做无屏/少屏、触觉明确的看护接口</p>
+          <p>不是逼长者学App，而是"技术缩小为一个按钮去适应长者" — 做无屏/少屏、触觉明确的看护接口</p>
         </div>
         <div class="value-item">
           <div class="value-icon">&#128176;</div>
@@ -964,7 +964,7 @@ sequenceDiagram
         <div class="card" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);">
           <div class="card-title" style="color:#fff;">照护反应链升级</div>
           <p class="card-desc" style="color:rgba(255,255,255,0.7);">
-            从「被动等待老人求助 &rarr; 拨打电话确认」升级为「主动发现事件 &rarr; 一键通知闭环」，减少无效电话，降低护工巡视频次压力
+            从「被动等待长者求助 &rarr; 拨打电话确认」升级为「主动发现事件 &rarr; 一键通知闭环」，减少无效电话，降低护工巡视频次压力
           </p>
         </div>
         <div class="card" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);">
@@ -979,7 +979,7 @@ sequenceDiagram
     <!-- ========== CLOSING ========== -->
     <div class="closing">
       <h2>守檐之下，有GuardYan</h2>
-      <p class="closing-tagline">"不是让老人适应技术，而是让技术缩小为一个按钮。"</p>
+      <p class="closing-tagline">"不是让长者适应技术，而是让技术缩小为一个按钮。"</p>
       <p>守檐·GuardYan — 一枚硬币大小的温度，一个零学习成本的承诺。</p>
     </div>
 

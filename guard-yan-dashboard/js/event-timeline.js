@@ -34,7 +34,7 @@
 
   function renderEventItem(ev) {
     const elder = DataStore.getElderById(ev.elderId);
-    const elderName = elder ? elder.name : '未知老人';
+    const elderName = elder ? elder.name : '未知长者';
     const timeStr = GYUtils.formatDate(ev.timestamp);
     const typeLabel = GYUtils.getEventTypeLabel(ev.type);
     const statusClass = ev.status;
