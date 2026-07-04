@@ -6,7 +6,7 @@
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const events = gyStore.getEvents(filter);
+    const events = DataStore.getEvents(filter);
     if (events.length === 0) {
       container.innerHTML = '<div class="empty-state">暂无事件记录</div>';
       return;
@@ -18,7 +18,7 @@
     container.querySelectorAll('[data-ack]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.ack;
-        gyStore.acknowledgeEvent(id, 'resolved');
+        DataStore.acknowledgeEvent(id, 'resolved');
         renderTimeline(containerId, filter);
         window.dispatchEvent(new CustomEvent('gy-data-changed'));
         showToast('事件已确认处理', 'success');
@@ -27,14 +27,14 @@
 
     container.querySelectorAll('[data-play]').forEach(btn => {
       btn.addEventListener('click', () => {
-        showToast('播放 3 秒环境录音（模拟）', 'success');
+        showToast('🔊 播放 3 秒环境录音（模拟）', 'success');
       });
     });
   }
 
   function renderEventItem(ev) {
-    const elder = gyStore.getElderById(ev.elderId);
-    const elderName = elder ? elder.name : '未知长者';
+    const elder = DataStore.getElderById(ev.elderId);
+    const elderName = elder ? elder.name : '未知老人';
     const timeStr = GYUtils.formatDate(ev.timestamp);
     const typeLabel = GYUtils.getEventTypeLabel(ev.type);
     const statusClass = ev.status;
@@ -42,12 +42,12 @@
 
     let actions = '';
     if (ev.status === 'pending') {
-      actions = `<button class="btn btn-success btn-sm" data-ack="${ev.id}"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 确认已处理</button>`;
+      actions = `<button class="btn btn-success btn-sm" data-ack="${ev.id}">✅ 确认已处理</button>`;
     } else {
       actions = `<span class="status-badge ${statusClass}">${statusText}</span>`;
     }
     if (ev.type === 'sos') {
-      actions = `<button class="btn btn-ghost btn-sm" data-play="${ev.id}"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 播放语音</button> ` + actions;
+      actions = `<button class="btn btn-ghost btn-sm" data-play="${ev.id}">▶️ 播放语音</button> ` + actions;
     }
 
     return `

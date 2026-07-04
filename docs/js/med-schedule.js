@@ -8,7 +8,7 @@
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const meds = gyStore.getMedications(elderId);
+    const meds = DataStore.getMedications(elderId);
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - (now.getDay() + 6) % 7); // Monday
@@ -59,11 +59,11 @@
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const meds = gyStore.getMedications(elderId);
+    const meds = DataStore.getMedications(elderId);
 
     let html = `
       <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 添加用药规则</div>
+        <div class="card-title">➕ 添加用药规则</div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">药品名称</label>
@@ -105,7 +105,7 @@
           <td>${m.time}</td>
           <td>${{daily:'每日',alternate:'隔天',custom:'自定义'}[m.repeatRule]}</td>
           <td>
-            <button class="btn btn-ghost btn-sm" data-del-med="${m.id}"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> 删除</button>
+            <button class="btn btn-ghost btn-sm" data-del-med="${m.id}">🗑️ 删除</button>
           </td>
         </tr>
       `).join('');
@@ -124,7 +124,7 @@
         showToast('请填写完整信息', 'error');
         return;
       }
-      gyStore.addMedication({
+      DataStore.addMedication({
         elderId: elderId, drugName: name, dosage: dose,
         time: time, repeatRule: repeat
       });
@@ -136,7 +136,7 @@
     // Bind delete
     container.querySelectorAll('[data-del-med]').forEach(btn => {
       btn.addEventListener('click', () => {
-        gyStore.deleteMedication(btn.dataset.delMed);
+        DataStore.deleteMedication(btn.dataset.delMed);
         showToast('用药规则已删除', 'success');
         renderMedRules(containerId, elderId);
         renderWeekCalendar('week-calendar', elderId);
