@@ -49,23 +49,26 @@
     const elderEvents = gyStore.getEvents({ elderId: elderId });
     const now = Date.now();
     const weekCutoff = now - 7 * 86400000;
-    const recentEvents = elderEvents.filter(e => e.timestamp >= weekCutoff);
     const counts = { fall: 0, sos: 0, med: 0 };
-    recentEvents.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
 
-    // Per-elder daily breakdown
+    // Per-elder daily breakdown — single pass instead of 7 filter passes
     const daily = [];
     for (let d = 6; d >= 0; d--) {
+      daily.push({ date: '', fall: 0, sos: 0, med: 0 });
+    }
+    for (const e of elderEvents) {
+      if (e.timestamp < weekCutoff) continue;
+      counts[e.type] = (counts[e.type] || 0) + 1;
+      const dayIndex = Math.floor((now - e.timestamp) / 86400000);
+      if (dayIndex >= 0 && dayIndex < 7) {
+        const idx = 6 - dayIndex;
+        if (daily[idx] && e.type in daily[idx]) daily[idx][e.type]++;
+      }
+    }
+    // Fill date labels
+    for (let d = 6; d >= 0; d--) {
       const date = new Date(now - d * 86400000);
-      const start = new Date(date); start.setHours(0,0,0,0);
-      const end = new Date(date); end.setHours(23,59,59,999);
-      const dayEvents = recentEvents.filter(e => e.timestamp >= start.getTime() && e.timestamp <= end.getTime());
-      daily.push({
-        date: `${date.getMonth()+1}/${date.getDate()}`,
-        fall: dayEvents.filter(e => e.type === 'fall').length,
-        sos: dayEvents.filter(e => e.type === 'sos').length,
-        med: dayEvents.filter(e => e.type === 'med').length
-      });
+      daily[6 - d].date = `${date.getMonth()+1}/${date.getDate()}`;
     }
 
     container.innerHTML = `

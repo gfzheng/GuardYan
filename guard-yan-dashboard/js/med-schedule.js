@@ -9,15 +9,33 @@
     if (med.repeatRule === 'daily') return true;
     if (med.repeatRule === 'alternate') {
       // Every other day from the medication creation
-      const medDate = new Date(med.id.replace('med-', '') * 1 || Date.now());
-      const diffDays = Math.floor((date.getTime() - medDate.getTime()) / 86400000);
-      return diffDays % 2 === 0;
+      // Use a stable reference: parse numeric id suffix, fallback to a hash of the id string
+      let refDays = 0;
+      const numId = parseInt(med.id.replace(/\D/g, ''), 10);
+      if (numId && numId > 100000) {
+        // Timestamp-based ID (med-1234567890)
+        refDays = Math.floor(numId / 86400000);
+      } else {
+        // String-based ID, use a simple hash
+        for (let j = 0; j < med.id.length; j++) refDays = (refDays * 31 + med.id.charCodeAt(j)) % 365;
+      }
+      const todayDays = Math.floor(date.getTime() / 86400000);
+      return (todayDays - refDays) % 2 === 0;
     }
     if (med.repeatRule === 'custom') {
       const dayOfWeek = (date.getDay() + 6) % 7; // 0=Mon
       return (med.customDays || []).includes(dayOfWeek);
     }
     return true;
+  }
+
+  // Sort medications by time
+  function sortByTime(meds) {
+    return [...meds].sort((a, b) => {
+      const [ah, am] = (a.time || '00:00').split(':').map(Number);
+      const [bh, bm] = (b.time || '00:00').split(':').map(Number);
+      return (ah * 60 + am) - (bh * 60 + bm);
+    });
   }
 
   function renderWeekCalendar(containerId, elderId) {
@@ -40,10 +58,12 @@
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek.getTime() + i * 86400000);
       const key = GYUtils.formatDateKey(d);
-      // Show all medications scheduled for this day (not just those with records)
-      const dayMeds = meds.filter(m => isScheduledOn(m, d));
+      // Show all medications scheduled for this day (not just those with records), sorted by time
+      const dayMeds = sortByTime(meds.filter(m => isScheduledOn(m, d)));
       const allTaken = dayMeds.length > 0 && dayMeds.every(m => m.records && m.records[key] && m.records[key].taken);
       const somePending = dayMeds.some(m => !m.records || !m.records[key] || !m.records[key].taken);
+      const isToday = d.toDateString() === now.toDateString();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
       let cls = 'week-day';
       if (dayMeds.length === 0) cls += ' skip';
@@ -57,8 +77,14 @@
         inner = dayMeds.map(m => {
           const rec = m.records && m.records[key];
           const taken = rec && rec.taken;
+          // For today, distinguish "upcoming" vs "missed"
+          const [mh, mm] = m.time.split(':').map(Number);
+          const medMinutes = mh * 60 + mm;
+          const isUpcoming = isToday && !taken && medMinutes > nowMinutes;
+          const icon = taken ? '✅' : (isUpcoming ? '⏳' : '❌');
+          const title = taken ? '已服用' : (isUpcoming ? '待服用' : '未服用');
           return `
-            <div class="week-day-drug">${taken ? '✅' : '❌'} ${m.drugName}</div>
+            <div class="week-day-drug" title="${title}">${icon} ${m.drugName}</div>
             <div class="week-day-dose">${m.dosage}</div>
             <div class="week-day-time">${m.time}</div>
           `;
@@ -113,10 +139,14 @@
     if (meds.length === 0) {
       html += '<div class="empty-state">暂无用药规则</div>';
     } else {
-      html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>药品</th><th>剂量</th><th>时间</th><th>重复</th><th>操作</th></tr></thead><tbody>';
-      html += meds.map(m => `
-        <tr>
-          <td>${m.drugName}</td>
+      const sorted = sortByTime(meds);
+      html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>长者</th><th>药品</th><th>剂量</th><th>时间</th><th>重复</th><th>操作</th></tr></thead><tbody>';
+      html += sorted.map(m => {
+        const elder = gyStore.getElderById(m.elderId);
+        return `
+          <tr>
+            <td>${elder ? elder.name : '未知'}</td>
+            <td>${m.drugName}</td>
           <td>${m.dosage}</td>
           <td>${m.time}</td>
           <td>${{daily:'每日',alternate:'隔天',custom:'自定义'}[m.repeatRule]}</td>
@@ -124,7 +154,8 @@
             <button class="btn btn-ghost btn-sm" data-del-med="${m.id}"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> 删除</button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
       html += '</tbody></table></div>';
     }
 

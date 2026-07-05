@@ -75,8 +75,8 @@
     const meds = gyStore.getMedications(ev.elderId);
     if (meds.length === 0) return;
 
-    const todayKey = GYUtils.formatDateKey(new Date(ev.timestamp));
     const evDate = new Date(ev.timestamp);
+    const todayKey = GYUtils.formatDateKey(evDate);
     const evMinutes = evDate.getHours() * 60 + evDate.getMinutes();
 
     // Try to match by drug name in description first

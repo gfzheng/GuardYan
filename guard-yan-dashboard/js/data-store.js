@@ -287,10 +287,30 @@ class DataStore {
 
   getTodayMedCount() {
     const todayKey = formatDateKey(new Date());
-    return this._data.medications.filter(m => {
+    const today = new Date();
+    let scheduled = 0, taken = 0;
+    this._data.medications.forEach(m => {
+      // Check if this medication is scheduled today
+      if (m.repeatRule === 'daily') {
+        scheduled++;
+      } else if (m.repeatRule === 'alternate') {
+        let refDays = 0;
+        const numId = parseInt(m.id.replace(/\D/g, ''), 10);
+        if (numId && numId > 100000) refDays = Math.floor(numId / 86400000);
+        else for (let j = 0; j < m.id.length; j++) refDays = (refDays * 31 + m.id.charCodeAt(j)) % 365;
+        const todayDays = Math.floor(today.getTime() / 86400000);
+        if ((todayDays - refDays) % 2 === 0) scheduled++;
+      } else if (m.repeatRule === 'custom') {
+        const dayOfWeek = (today.getDay() + 6) % 7;
+        if ((m.customDays || []).includes(dayOfWeek)) scheduled++;
+      } else {
+        scheduled++;
+      }
+      // Count taken
       const rec = m.records && m.records[todayKey];
-      return rec && rec.taken;
-    }).length;
+      if (rec && rec.taken) taken++;
+    });
+    return { scheduled, taken };
   }
 
   // ===== Stats =====

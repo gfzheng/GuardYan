@@ -157,14 +157,16 @@
         showToast(`${target.name} SOS 呼救已上报！`, 'error');
       }, delay);
     } else if (action === 'med') {
-      showToast(`模拟：${target.name} 用药提醒触发...`, 'success');
+      const meds = gyStore.getMedications(target.id);
+      const medName = meds.length > 0 ? meds[0].drugName : '未指定药品';
+      showToast(`模拟：${target.name} ${medName} 用药提醒...`, 'success');
       setTimeout(() => {
         gyStore.addEvent({
           type: 'med', elderId: target.id,
-          description: '用药时间到，设备已提醒'
+          description: `${medName} 用药时间到，设备已提醒`
         });
         window.dispatchEvent(new CustomEvent('gy-data-changed'));
-        showToast(`${target.name} 用药提醒已推送`, 'success');
+        showToast(`${target.name} ${medName} 用药提醒已推送`, 'success');
       }, delay);
     }
   }
