@@ -18,7 +18,12 @@
     container.querySelectorAll('[data-ack]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.ack;
+        const ev = gyStore.getEventById(id);
         gyStore.acknowledgeEvent(id, 'resolved');
+        // If medication event, sync medication records
+        if (ev && ev.type === 'med') {
+          syncMedRecord(ev);
+        }
         renderTimeline(containerId, filter);
         window.dispatchEvent(new CustomEvent('gy-data-changed'));
         showToast('事件已确认处理', 'success');
@@ -63,6 +68,42 @@
         </div>
       </div>
     `;
+  }
+
+  // Match a medication event to its medication rule and mark today as taken
+  function syncMedRecord(ev) {
+    const meds = gyStore.getMedications(ev.elderId);
+    if (meds.length === 0) return;
+
+    const todayKey = GYUtils.formatDateKey(new Date(ev.timestamp));
+    const evDate = new Date(ev.timestamp);
+    const evMinutes = evDate.getHours() * 60 + evDate.getMinutes();
+
+    // Try to match by drug name in description first
+    let matched = null;
+    for (const m of meds) {
+      if (ev.description && ev.description.includes(m.drugName)) {
+        matched = m;
+        break;
+      }
+    }
+
+    // Fallback: match by closest scheduled time
+    if (!matched) {
+      let minDiff = Infinity;
+      for (const m of meds) {
+        const [h, min] = m.time.split(':').map(Number);
+        const diff = Math.abs(h * 60 + min - evMinutes);
+        if (diff < minDiff) {
+          minDiff = diff;
+          matched = m;
+        }
+      }
+    }
+
+    if (matched) {
+      gyStore.toggleMedRecord(matched.id, todayKey, true);
+    }
   }
 
   window.EventTimeline = { render: renderTimeline };
