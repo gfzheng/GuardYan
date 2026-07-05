@@ -3,6 +3,7 @@
 
 (function() {
   let _chartInstance = null;
+  let _currentElderId = null;
 
   function renderElderList(containerId, onSelect) {
     const container = document.getElementById(containerId);
@@ -23,6 +24,7 @@
       item.addEventListener('click', () => {
         container.querySelectorAll('.elder-list-item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
+        _currentElderId = item.dataset.elder;
         if (onSelect) onSelect(item.dataset.elder);
       });
     });
@@ -31,27 +33,18 @@
     const first = container.querySelector('[data-elder]');
     if (first) {
       first.classList.add('active');
+      _currentElderId = first.dataset.elder;
       if (onSelect) onSelect(first.dataset.elder);
     }
   }
 
-  function renderElderProfile(containerId, elderId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const elder = gyStore.getElderById(elderId);
-    if (!elder) {
-      container.innerHTML = '<div class="empty-state">请选择长者</div>';
-      return;
-    }
-
-    // Per-elder stats (filter by elderId)
+  // Shared: compute weekly stats for a given elder
+  function computeDailyStats(elderId) {
     const elderEvents = gyStore.getEvents({ elderId: elderId });
     const now = Date.now();
     const weekCutoff = now - 7 * 86400000;
     const counts = { fall: 0, sos: 0, med: 0 };
 
-    // Per-elder daily breakdown — single pass instead of 7 filter passes
     const daily = [];
     for (let d = 6; d >= 0; d--) {
       daily.push({ date: '', fall: 0, sos: 0, med: 0 });
@@ -65,11 +58,26 @@
         if (daily[idx] && e.type in daily[idx]) daily[idx][e.type]++;
       }
     }
-    // Fill date labels
     for (let d = 6; d >= 0; d--) {
       const date = new Date(now - d * 86400000);
       daily[6 - d].date = `${date.getMonth()+1}/${date.getDate()}`;
     }
+    return { counts, daily };
+  }
+
+  // Full render: rebuilds all HTML (only on elder switch)
+  function renderElderProfile(containerId, elderId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const elder = gyStore.getElderById(elderId);
+    if (!elder) {
+      container.innerHTML = '<div class="empty-state">请选择长者</div>';
+      _chartInstance = null;
+      return;
+    }
+
+    const { counts, daily } = computeDailyStats(elderId);
 
     container.innerHTML = `
       <div class="profile-grid">
@@ -88,9 +96,9 @@
           <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> 设备状态</div>
           <div class="card-body">
             <div class="info-row"><span class="info-label">设备 ID</span><span class="info-value">${elder.deviceId}</span></div>
-            <div class="info-row"><span class="info-label">在线状态</span><span class="info-value"><span class="status-dot ${elder.online ? 'online' : 'offline'}"></span> ${elder.online ? '在线' : '离线'}</span></div>
-            <div class="info-row"><span class="info-label">电量</span><span class="info-value">${elder.battery}%</span></div>
-            <div class="battery-bar"><div class="battery-fill ${elder.battery > 50 ? 'high' : elder.battery > 20 ? 'medium' : 'low'}" style="width:${elder.battery}%"></div></div>
+            <div class="info-row"><span class="info-label">在线状态</span><span class="info-value"><span class="status-dot ${elder.online ? 'online' : 'offline'}" id="stat-elder-online-dot"></span> <span id="stat-elder-online-txt">${elder.online ? '在线' : '离线'}</span></span></div>
+            <div class="info-row"><span class="info-label">电量</span><span class="info-value"><span id="stat-elder-battery">${elder.battery}</span>%</span></div>
+            <div class="battery-bar"><div class="battery-fill ${elder.battery > 50 ? 'high' : elder.battery > 20 ? 'medium' : 'low'}" id="stat-elder-battery-bar" style="width:${elder.battery}%"></div></div>
             <div class="info-row"><span class="info-label">固件版本</span><span class="info-value">${elder.firmware}</span></div>
             <div class="info-row"><span class="info-label">最后上报</span><span class="info-value">${GYUtils.formatDate(elder.lastReport)}</span></div>
             <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
@@ -103,9 +111,9 @@
       <div class="card" style="margin-top:1rem;">
         <div class="card-title"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> 近7天事件统计</div>
         <div style="display:flex;gap:1rem;margin-bottom:0.75rem;">
-          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent2);">${counts.fall}</div><div style="font-size:0.8rem;color:var(--muted);">跌倒</div></div>
-          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent);">${counts.sos}</div><div style="font-size:0.8rem;color:var(--muted);">SOS</div></div>
-          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--muted);">${counts.med}</div><div style="font-size:0.8rem;color:var(--muted);">用药</div></div>
+          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent2);" id="stat-count-fall">${counts.fall}</div><div style="font-size:0.8rem;color:var(--muted);">跌倒</div></div>
+          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent);" id="stat-count-sos">${counts.sos}</div><div style="font-size:0.8rem;color:var(--muted);">SOS</div></div>
+          <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--muted);" id="stat-count-med">${counts.med}</div><div style="font-size:0.8rem;color:var(--muted);">用药</div></div>
         </div>
         <canvas id="chart-events" height="180"></canvas>
       </div>
@@ -119,15 +127,49 @@
       showToast(`已向 ${elder.deviceId} 发送静音指令`, 'success');
     });
 
-    // Render chart (destroy old instance first)
+    // Create chart from scratch (only on elder switch)
     renderChart(daily);
+  }
+
+  // Lightweight refresh: update count DOM + chart data in-place (no HTML rebuild)
+  function refreshProfileStats() {
+    if (!_currentElderId) return;
+
+    const elder = gyStore.getElderById(_currentElderId);
+    if (!elder) return;
+
+    const { counts, daily } = computeDailyStats(_currentElderId);
+
+    // Update count elements in-place
+    const elFall = document.getElementById('stat-count-fall');
+    const elSos = document.getElementById('stat-count-sos');
+    const elMed = document.getElementById('stat-count-med');
+    if (elFall) elFall.textContent = counts.fall;
+    if (elSos) elSos.textContent = counts.sos;
+    if (elMed) elMed.textContent = counts.med;
+
+    // Update device status in-place
+    const elOnlineDot = document.getElementById('stat-elder-online-dot');
+    const elOnlineTxt = document.getElementById('stat-elder-online-txt');
+    const elBattery = document.getElementById('stat-elder-battery');
+    const elBatteryBar = document.getElementById('stat-elder-battery-bar');
+    if (elOnlineDot) { elOnlineDot.className = 'status-dot ' + (elder.online ? 'online' : 'offline'); }
+    if (elOnlineTxt) elOnlineTxt.textContent = elder.online ? '在线' : '离线';
+    if (elBattery) elBattery.textContent = elder.battery;
+    if (elBatteryBar) {
+      elBatteryBar.style.width = elder.battery + '%';
+      elBatteryBar.className = 'battery-fill ' + (elder.battery > 50 ? 'high' : elder.battery > 20 ? 'medium' : 'low');
+    }
+
+    // Update chart data in-place (no destroy/recreate)
+    updateChart(daily);
   }
 
   function renderChart(dailyData) {
     const ctx = document.getElementById('chart-events');
     if (!ctx || typeof Chart === 'undefined') return;
 
-    // Destroy previous chart instance to prevent memory leak
+    // Destroy previous chart instance
     if (_chartInstance) {
       _chartInstance.destroy();
       _chartInstance = null;
@@ -152,5 +194,19 @@
     });
   }
 
-  window.ElderCard = { renderList: renderElderList, renderProfile: renderElderProfile };
+  // In-place chart update: only mutates data, no destroy/recreate
+  function updateChart(dailyData) {
+    if (!_chartInstance || typeof Chart === 'undefined') return;
+    _chartInstance.data.labels = dailyData.map(d => d.date);
+    _chartInstance.data.datasets[0].data = dailyData.map(d => d.fall);
+    _chartInstance.data.datasets[1].data = dailyData.map(d => d.sos);
+    _chartInstance.data.datasets[2].data = dailyData.map(d => d.med);
+    _chartInstance.update('none'); // 'none' skips animation for max performance
+  }
+
+  window.ElderCard = {
+    renderList: renderElderList,
+    renderProfile: renderElderProfile,
+    refreshStats: refreshProfileStats
+  };
 })();
