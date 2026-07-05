@@ -4,7 +4,7 @@
 
 ## 在线体验
 
-👉 **[点击在线体验](https://你的用户名.github.io/guardyan-dashboard/)**
+👉 **[点击在线体验](https://gfzheng.github.io/GuardYan/guard-yan-dashboard/index.html)**
 
 ## 本地运行
 
@@ -46,7 +46,7 @@ python -m http.server 8080
 
 ## 部署到 GitHub Pages
 
-1. Fork / 创建 GitHub 仓库 `guardyan-dashboard`
-2. 将本目录内容推送到 `main` 分支
-3. 仓库 Settings → Pages → Source: Deploy from a branch → main / root
-4. 等待 1~2 分钟，访问 `https://<你的用户名>.github.io/guardyan-dashboard/`
+1. Fork / 创建 GitHub 仓库 `GuardYan`
+2. 将本目录内容推送到 `master` 分支，同步到 `gh-pages` 分支
+3. 仓库 Settings → Pages → Source: Deploy from a branch → gh-pages / root
+4. 等待 1~2 分钟，访问 `https://gfzheng.github.io/GuardYan/guard-yan-dashboard/`
