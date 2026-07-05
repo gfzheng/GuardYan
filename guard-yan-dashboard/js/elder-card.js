@@ -115,7 +115,7 @@
           <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--accent);" id="stat-count-sos">${counts.sos}</div><div style="font-size:0.8rem;color:var(--muted);">SOS</div></div>
           <div style="text-align:center;flex:1;"><div style="font-size:1.5rem;font-weight:700;color:var(--muted);" id="stat-count-med">${counts.med}</div><div style="font-size:0.8rem;color:var(--muted);">用药</div></div>
         </div>
-        <div style="height:180px;"><canvas id="chart-events" height="180"></canvas></div>
+        <div style="position:relative;height:200px;max-height:200px;overflow:hidden;"><canvas id="chart-events"></canvas></div>
       </div>
     `;
 
