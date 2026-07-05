@@ -4,6 +4,22 @@
 (function() {
   const WEEK_DAYS = ['周一','周二','周三','周四','周五','周六','周日'];
 
+  // Check if a medication should be scheduled on a given date
+  function isScheduledOn(med, date) {
+    if (med.repeatRule === 'daily') return true;
+    if (med.repeatRule === 'alternate') {
+      // Every other day from the medication creation
+      const medDate = new Date(med.id.replace('med-', '') * 1 || Date.now());
+      const diffDays = Math.floor((date.getTime() - medDate.getTime()) / 86400000);
+      return diffDays % 2 === 0;
+    }
+    if (med.repeatRule === 'custom') {
+      const dayOfWeek = (date.getDay() + 6) % 7; // 0=Mon
+      return (med.customDays || []).includes(dayOfWeek);
+    }
+    return true;
+  }
+
   function renderWeekCalendar(containerId, elderId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -17,7 +33,6 @@
     let html = '<div class="week-grid">';
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek.getTime() + i * 86400000);
-      const key = GYUtils.formatDateKey(d);
       const isToday = d.toDateString() === now.toDateString();
       html += `<div class="week-header">${WEEK_DAYS[i]}${isToday ? '<br><small>(今天)</small>' : ''}</div>`;
     }
@@ -25,9 +40,10 @@
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek.getTime() + i * 86400000);
       const key = GYUtils.formatDateKey(d);
-      const dayMeds = meds.filter(m => m.records && m.records[key]);
-      const allTaken = dayMeds.length > 0 && dayMeds.every(m => m.records[key].taken);
-      const somePending = dayMeds.some(m => !m.records[key].taken);
+      // Show all medications scheduled for this day (not just those with records)
+      const dayMeds = meds.filter(m => isScheduledOn(m, d));
+      const allTaken = dayMeds.length > 0 && dayMeds.every(m => m.records && m.records[key] && m.records[key].taken);
+      const somePending = dayMeds.some(m => !m.records || !m.records[key] || !m.records[key].taken);
 
       let cls = 'week-day';
       if (dayMeds.length === 0) cls += ' skip';
@@ -39,7 +55,7 @@
         inner = '<div style="color:var(--muted);font-size:0.75rem;">无用药</div>';
       } else {
         inner = dayMeds.map(m => {
-          const rec = m.records[key];
+          const rec = m.records && m.records[key];
           const taken = rec && rec.taken;
           return `
             <div class="week-day-drug">${taken ? '✅' : '❌'} ${m.drugName}</div>

@@ -26,19 +26,19 @@
     <h2 class="section-title"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2"/></svg> 事件总览</h2>
 
     <div class="stat-grid">
-      <div class="stat-card">
+      <div class="stat-card stat-clickable" id="stat-card-total">
         <div class="stat-num" id="stat-total">0</div>
         <div class="stat-label">今日事件</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-clickable" id="stat-card-pending">
         <div class="stat-num" id="stat-pending">0</div>
         <div class="stat-label">待确认</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-clickable" id="stat-card-elders">
         <div class="stat-num" id="stat-elders">0</div>
         <div class="stat-label">绑定长者</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-clickable" id="stat-card-med">
         <div class="stat-num" id="stat-med">0</div>
         <div class="stat-label">今日用药</div>
       </div>
@@ -55,16 +55,41 @@
   <script src="js/app.js"></script>
   <script>
     (function() {
+      let currentFilter = {};
+
       function refresh() {
         const counts = gyStore.getTodayEventCounts();
         document.getElementById('stat-total').textContent = counts.total;
         document.getElementById('stat-pending').textContent = counts.pending;
         document.getElementById('stat-elders').textContent = gyStore.getElders().length;
         document.getElementById('stat-med').textContent = gyStore.getTodayMedCount();
-        EventTimeline.render('event-timeline', {});
+        EventTimeline.render('event-timeline', currentFilter);
       }
 
-      document.addEventListener('DOMContentLoaded', refresh);
+      function bindStatCards() {
+        document.getElementById('stat-card-total').addEventListener('click', () => {
+          currentFilter = {};
+          refresh();
+          document.getElementById('event-timeline').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        document.getElementById('stat-card-pending').addEventListener('click', () => {
+          currentFilter = { status: 'pending' };
+          refresh();
+          document.getElementById('event-timeline').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          showToast('已筛选待确认事件', 'success');
+        });
+        document.getElementById('stat-card-elders').addEventListener('click', () => {
+          window.location.href = 'profile.html';
+        });
+        document.getElementById('stat-card-med').addEventListener('click', () => {
+          window.location.href = 'medication.html';
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        refresh();
+        bindStatCards();
+      });
       window.addEventListener('gy-data-changed', refresh);
     })();
   </script>
