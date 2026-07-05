@@ -41,13 +41,24 @@
   <script src="js/app.js"></script>
   <script>
     (function() {
+      let _currentElderId = null;
+
       function render() {
         ElderCard.renderList('elder-list', function(elderId) {
+          _currentElderId = elderId;
           ElderCard.renderProfile('profile-detail', elderId);
         });
       }
+
+      function refreshProfile() {
+        if (_currentElderId) {
+          ElderCard.renderProfile('profile-detail', _currentElderId);
+        }
+      }
+
       document.addEventListener('DOMContentLoaded', render);
-      window.addEventListener('gy-data-changed', render);
+      // Only refresh profile detail on data changes, don't rebuild the list
+      window.addEventListener('gy-data-changed', refreshProfile);
     })();
   </script>
 </body>
