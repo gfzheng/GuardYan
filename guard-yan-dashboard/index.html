@@ -63,7 +63,7 @@
         document.getElementById('stat-pending').textContent = counts.pending;
         document.getElementById('stat-elders').textContent = gyStore.getElders().length;
         const medCounts = gyStore.getTodayMedCount();
-        document.getElementById('stat-med').textContent = medCounts.scheduled;
+        document.getElementById('stat-med').textContent = medCounts.taken + '/' + medCounts.scheduled;
         EventTimeline.render('event-timeline', currentFilter);
       }
 
